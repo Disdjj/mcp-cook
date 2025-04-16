@@ -7,11 +7,6 @@ import * as path from "path";
 import { z } from "zod";
 import { fileURLToPath } from "url";
 
-// 设置全局字符编码为UTF-8
-process.env.LANG = 'zh_CN.UTF-8';
-process.env.LC_ALL = 'zh_CN.UTF-8';
-process.env.LC_CTYPE = 'UTF-8';
-
 // Determine the directory of the current module
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
