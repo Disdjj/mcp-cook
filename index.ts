@@ -42,7 +42,7 @@ server.tool(
         };
       }
 
-      const files = await fs.readdir(dishesDir, { encoding: 'utf8' });
+      const files = await fs.readdir(dishesDir, { encoding: "utf8" });
       const dishNames = files
         .filter((file: string) => file.endsWith(".md"))
         .map((file: string) => path.basename(file, ".md"));
@@ -83,6 +83,8 @@ server.tool(
     dishName: z.string().describe("要获取内容的菜品名称 (例如 '麻婆豆腐')"),
   },
   async ({ dishName }) => {
+    // dishName中可能有中文，需要进行编码, 转为utf-8
+    // 对菜品名称进行编码，确保中文字符能够正确处理
     const filePath = path.join(dishesDir, `${dishName}.md`);
 
     try {
@@ -125,14 +127,8 @@ server.tool(
 );
 
 async function main() {
-  // 设置标准输入输出流编码为UTF-8
-  process.stdin.setEncoding('utf-8');
-  process.stdout.setDefaultEncoding('utf-8');
-  process.stderr.setDefaultEncoding('utf-8');
-
   const transport = new StdioServerTransport();
   await server.connect(transport);
-  console.log("MCP Server running on stdio");
 }
 
 main().catch((error) => {
