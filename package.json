@@ -1,6 +1,6 @@
 {
   "name": "mcp-cook",
-  "version": "0.0.2",
+  "version": "0.0.4",
   "description": "An MCP service for providing dish information.",
   "keywords": [
     "MCP",

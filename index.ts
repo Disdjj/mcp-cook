@@ -7,6 +7,11 @@ import * as path from "path";
 import { z } from "zod";
 import { fileURLToPath } from "url";
 
+// 设置全局字符编码为UTF-8
+process.env.LANG = 'zh_CN.UTF-8';
+process.env.LC_ALL = 'zh_CN.UTF-8';
+process.env.LC_CTYPE = 'UTF-8';
+
 // Determine the directory of the current module
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -42,7 +47,7 @@ server.tool(
         };
       }
 
-      const files = await fs.readdir(dishesDir);
+      const files = await fs.readdir(dishesDir, { encoding: 'utf8' });
       const dishNames = files
         .filter((file: string) => file.endsWith(".md"))
         .map((file: string) => path.basename(file, ".md"));
@@ -83,24 +88,7 @@ server.tool(
     dishName: z.string().describe("要获取内容的菜品名称 (例如 '麻婆豆腐')"),
   },
   async ({ dishName }) => {
-    // Basic sanitization to prevent path traversal
-    const safeDishName = path
-      .normalize(dishName)
-      .replace(/^(\.\.(\/|\\|$))+/, "");
-    if (safeDishName !== dishName || safeDishName.includes("..")) {
-      console.error(
-        `Attempted path traversal or invalid characters: ${dishName}`
-      );
-      return {
-        content: [
-          {
-            type: "text",
-            text: "错误：无效的菜品名称。",
-          },
-        ],
-      };
-    }
-    const filePath = path.join(dishesDir, `${safeDishName}.md`);
+    const filePath = path.join(dishesDir, `${dishName}.md`);
 
     try {
       if (!existsSync(filePath)) {
@@ -109,7 +97,7 @@ server.tool(
           content: [
             {
               type: "text",
-              text: `错误：找不到菜品 \'${safeDishName}\'。请确保名称正确且文件存在于 \'dishes\' 目录中。`,
+              text: `错误：找不到菜品 \'${dishName}\'。请确保名称正确且文件存在于 \'dishes\' 目录中。, expected path: ${filePath}`,
             },
           ],
         };
@@ -123,17 +111,17 @@ server.tool(
           },
         ],
         // Optionally return data structure
-        data: { dishName: safeDishName, content: content },
+        data: { dishName: dishName, content: content },
       };
     } catch (error: unknown) {
       const errorMessage =
         error instanceof Error ? error.message : String(error);
-      console.error(`获取菜品 \'${safeDishName}\' 内容时出错:`, errorMessage);
+      console.error(`获取菜品 \'${dishName}\' 内容时出错:`, errorMessage);
       return {
         content: [
           {
             type: "text",
-            text: `获取菜品 \'${safeDishName}\' 内容时出错: ${errorMessage}`,
+            text: `获取菜品 \'${dishName}\' 内容时出错: ${errorMessage}`,
           },
         ],
       };
@@ -142,6 +130,11 @@ server.tool(
 );
 
 async function main() {
+  // 设置标准输入输出流编码为UTF-8
+  process.stdin.setEncoding('utf-8');
+  process.stdout.setDefaultEncoding('utf-8');
+  process.stderr.setDefaultEncoding('utf-8');
+
   const transport = new StdioServerTransport();
   await server.connect(transport);
   console.log("MCP Server running on stdio");
